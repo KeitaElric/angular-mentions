@@ -4,7 +4,6 @@ import {
   Output,
   EventEmitter,
   ViewChild,
-  ContentChild,
   Input,
   TemplateRef,
   OnInit
@@ -46,7 +45,7 @@ import { getCaretCoordinates } from './caret-coords';
     <ng-template #defaultItemTemplate let-item="item">
       {{item[labelKey]}}
     </ng-template>
-    <ul #list [attr.hidden]="hidden ? true : null" class="dropdown-menu scrollable-menu">
+    <ul #list [hidden]="_hidden" class="dropdown-menu scrollable-menu">
       <li *ngFor="let item of items; let i = index" [class.active]="activeIndex==i">
         <a class="dropdown-item" (mousedown)="activeIndex=i;itemClick.emit();$event.preventDefault()">
           <ng-template [ngTemplateOutlet]="itemTemplate" [ngTemplateOutletContext]="{'item':item}"></ng-template>
@@ -56,14 +55,14 @@ import { getCaretCoordinates } from './caret-coords';
   `
 })
 export class MentionListComponent implements OnInit {
-  @Input() labelKey: string = 'label';
+  @Input() labelKey = 'label';
   @Input() itemTemplate: TemplateRef<any>;
   @Output() itemClick = new EventEmitter();
   @ViewChild('list') list: ElementRef;
   @ViewChild('defaultItemTemplate') defaultItemTemplate: TemplateRef<any>;
   items = [];
-  activeIndex: number = 0;
-  hidden: boolean = false;
+  activeIndex = 0;
+  private _hidden = false;
 
   constructor(private element: ElementRef) {
   }
@@ -72,6 +71,14 @@ export class MentionListComponent implements OnInit {
     if (!this.itemTemplate) {
       this.itemTemplate = this.defaultItemTemplate;
     }
+  }
+
+  set hidden(isHidden) {
+    this._hidden = isHidden;
+  }
+
+  get hidden(): boolean {
+    return this._hidden;
   }
 
   // lots of confusion here between relative coordinates and containers

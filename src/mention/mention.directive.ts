@@ -3,7 +3,8 @@ import {
   ElementRef,
   ComponentFactoryResolver,
   ViewContainerRef,
-  TemplateRef
+  TemplateRef,
+  HostListener
 } from '@angular/core';
 import {
   Input,
@@ -41,15 +42,11 @@ const KEY_2 = 50;
  * Copyright (c) 2017 Dan MacFarlane
  */
 @Directive({
-  selector: '[mention], [mentionConfig]',
-  host: {
-    '(keydown)': 'keyHandler($event)',
-    '(blur)': 'blurHandler($event)'
-  }
+  selector: '[mention], [mentionConfig]'
 })
 export class MentionDirective implements OnChanges {
 
-  // stores the items passed to the mentions directive and used to populate the root items in mentionConfig 
+  // stores the items passed to the mentions directive and used to populate the root items in mentionConfig
   private mentionItems: any[];
 
   @Input('mention') set mention(items: any[]) {
@@ -59,7 +56,7 @@ export class MentionDirective implements OnChanges {
   // the provided configuration object
   @Input() mentionConfig: MentionConfig = {items: []};
 
-  private activeConfig: MentionConfig;// = this.DEFAULT_CONFIG;
+  private activeConfig: MentionConfig; // = this.DEFAULT_CONFIG;
 
   private DEFAULT_CONFIG: MentionConfig = {
     items: [],
@@ -78,7 +75,7 @@ export class MentionDirective implements OnChanges {
 
   // option to diable internal filtering. can be used to show the full list returned
   // from an async operation (or allows a custom filter function to be used - in future)
-  private disableSearch: boolean = false;
+  private disableSearch = false;
 
   private triggerChars: { [key: string]: MentionConfig } = {};
 
@@ -97,14 +94,27 @@ export class MentionDirective implements OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    // console.log('config change', changes);
-    if (changes['mention'] || changes['mentionConfig']) {
+    // Fixed dropdown don't hidden when click to select item
+    if (JSON.stringify(changes['mention'].previousValue) !== JSON.stringify(changes['mention'].currentValue)) {
+      this.updateConfig();
+    }
+    if (changes['mentionConfig']) {
       this.updateConfig();
     }
   }
 
+  @HostListener('keydown', ['$event'])
+  public onKeyDown(event?) {
+    this.keyHandler(event);
+  }
+
+  @HostListener('blur', ['$event'])
+  public onBlur(event?) {
+    this.blurHandler(event);
+  }
+
   private updateConfig() {
-    let config = this.mentionConfig;
+    const config = this.mentionConfig;
     this.triggerChars = {};
     // use items from directive if they have been set
     if (this.mentionItems) {
@@ -113,22 +123,22 @@ export class MentionDirective implements OnChanges {
     this.addConfig(config);
     // nested configs
     if (config.mentions) {
-      config.mentions.forEach(config => this.addConfig(config));
+      config.mentions.forEach(c => this.addConfig(c));
     }
   }
 
   // add configuration for a trigger char
   private addConfig(config: MentionConfig) {
     // defaults
-    let defaults = Object.assign({}, this.DEFAULT_CONFIG);
+    const defaults = Object.assign({}, this.DEFAULT_CONFIG);
     config = Object.assign(defaults, config);
     // items
     let items = config.items;
     if (items && items.length > 0) {
       // convert strings to objects
-      if (typeof items[0] == 'string') {
+      if (typeof items[0] === 'string') {
         items = items.map((label) => {
-          let object = {};
+          const object = {};
           object[config.labelKey] = label;
           return object;
         });
@@ -145,7 +155,7 @@ export class MentionDirective implements OnChanges {
     this.triggerChars[config.triggerChar] = config;
 
     // for async update while menu/search is active
-    if (this.activeConfig && this.activeConfig.triggerChar == config.triggerChar) {
+    if (this.activeConfig && this.activeConfig.triggerChar === config.triggerChar) {
       this.activeConfig = config;
       this.updateSearchList();
     }
@@ -156,7 +166,7 @@ export class MentionDirective implements OnChanges {
   }
 
   stopEvent(event: any) {
-    //if (event instanceof KeyboardEvent) { // does not work for iframe
+    // if (event instanceof KeyboardEvent) { // does not work for iframe
     if (!event.wasClick) {
       event.preventDefault();
       event.stopPropagation();
@@ -173,31 +183,30 @@ export class MentionDirective implements OnChanges {
   }
 
   keyHandler(event: any, nativeElement: HTMLInputElement = this._element.nativeElement) {
-    let val: string = getValue(nativeElement);
+    const val: string = getValue(nativeElement);
     let pos = getCaretPosition(nativeElement, this.iframe);
     let charPressed = event.key;
     if (!charPressed) {
-      let charCode = event.which || event.keyCode;
+      const charCode = event.which || event.keyCode;
       if (!event.shiftKey && (charCode >= 65 && charCode <= 90)) {
         charPressed = String.fromCharCode(charCode + 32);
-      }
-      // else if (event.shiftKey && charCode === KEY_2) {
-      //   charPressed = this.config.triggerChar;
-      // }
-      else {
+      } else {
         // TODO (dmacfarlane) fix this for non-alpha keys
         // http://stackoverflow.com/questions/2220196/how-to-decode-character-pressed-from-jquerys-keydowns-event-handler?lq=1
         charPressed = String.fromCharCode(event.which || event.keyCode);
       }
+      // else if (event.shiftKey && charCode === KEY_2) {
+      //   charPressed = this.config.triggerChar;
+      // }
     }
-    if (event.keyCode == KEY_ENTER && event.wasClick && pos < this.startPos) {
+    if (event.keyCode === KEY_ENTER && event.wasClick && pos < this.startPos) {
 
       // put caret back in position prior to contenteditable menu click
       pos = this.startNode.length;
       setCaretPosition(this.startNode, pos, this.iframe);
     }
 
-    let config = this.triggerChars[charPressed];
+    const config = this.triggerChars[charPressed];
     if (config) {
       this.activeConfig = config;
       this.startPos = pos;
@@ -209,19 +218,17 @@ export class MentionDirective implements OnChanges {
     } else if (this.startPos >= 0 && !this.stopSearch) {
       if (pos <= this.startPos) {
         this.searchList.hidden = true;
-      }
-      // ignore shift when pressed alone, but not when used with another key
-      else if (event.keyCode !== KEY_SHIFT &&
+      } else if (event.keyCode !== KEY_SHIFT &&
         !event.metaKey &&
         !event.altKey &&
         !event.ctrlKey &&
         pos > this.startPos
-      ) {
+      ) { // ignore shift when pressed alone, but not when used with another key
         if (event.keyCode === KEY_SPACE) {
           this.startPos = -1;
         } else if (event.keyCode === KEY_BACKSPACE && pos > 0) {
           pos--;
-          if (pos == this.startPos) {
+          if (pos === this.startPos) {
             this.stopSearch = true;
           }
           this.searchList.hidden = this.stopSearch;
@@ -235,7 +242,7 @@ export class MentionDirective implements OnChanges {
               this.activeConfig.mentionSelect(this.searchList.activeItem), this.activeConfig.format, this.iframe);
             // fire input event so angular bindings are updated
             if ('createEvent' in document) {
-              var evt = document.createEvent('HTMLEvents');
+              const evt = document.createEvent('HTMLEvents');
               evt.initEvent('input', false, true);
               nativeElement.dispatchEvent(evt);
             }
@@ -279,7 +286,7 @@ export class MentionDirective implements OnChanges {
       let objects = this.activeConfig.items;
       // disabling the search relies on the async operation to do the filtering
       if (!this.disableSearch && this.searchString) {
-        let searchStringLowerCase = this.searchString.toLowerCase();
+        const searchStringLowerCase = this.searchString.toLowerCase();
         objects = objects.filter(e => e[this.activeConfig.labelKey].toLowerCase().startsWith(searchStringLowerCase));
       }
       matches = objects;
@@ -291,21 +298,20 @@ export class MentionDirective implements OnChanges {
     if (this.searchList) {
       this.searchList.labelKey = this.activeConfig.labelKey;
       this.searchList.items = matches;
-      this.searchList.hidden = matches.length == 0;
+      this.searchList.hidden = matches.length === 0;
     }
   }
 
   showSearchList(nativeElement: HTMLInputElement) {
     if (this.searchList == null) {
-      let componentFactory = this._componentResolver.resolveComponentFactory(MentionListComponent);
-      let componentRef = this._viewContainerRef.createComponent(componentFactory);
+      const componentFactory = this._componentResolver.resolveComponentFactory(MentionListComponent);
+      const componentRef = this._viewContainerRef.createComponent(componentFactory);
       this.searchList = componentRef.instance;
       this.searchList.position(nativeElement, this.iframe, this.activeConfig.dropUp);
       this.searchList.itemTemplate = this.mentionListTemplate;
       componentRef.instance['itemClick'].subscribe(() => {
         nativeElement.focus();
-        let fakeKeydown = {'keyCode': KEY_ENTER, 'wasClick': true};
-        console.log(fakeKeydown);
+        const fakeKeydown = {'keyCode': KEY_ENTER, 'wasClick': true};
         this.keyHandler(fakeKeydown, nativeElement);
       });
     } else {

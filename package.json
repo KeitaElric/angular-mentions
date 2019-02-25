@@ -1,7 +1,8 @@
 {
-  "name": "angular-mentions",
-  "version": "0.9.0",
+  "name": "ngx-ui-mention",
+  "version": "1.1.1",
   "description": "Angular mentions for text fields.",
+  "bugs": "https://github.com/KeitaElric/angular-mentions",
   "keywords": [
     "angular",
     "mention",
@@ -10,7 +11,7 @@
   "main": "src/mention/index.ts",
   "repository": {
     "type": "git",
-    "url": "https://github.com/dmacfarlane/angular-mentions.git"
+    "url": "https://github.com/KeitaElric/angular-mentions.git"
   },
   "author": "Dan MacFarlane",
   "license": "MIT",

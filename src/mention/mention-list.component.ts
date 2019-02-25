@@ -25,6 +25,53 @@ import { getCaretCoordinates } from './caret-coords';
   selector: 'mention-list',
   styles: [
       `
+      .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        z-index: 1000;
+        display: none;
+        float: left;
+        min-width: 160px;
+        padding: 5px 0;
+        margin: 2px 0 0;
+        text-align: left;
+        list-style: none;
+        background-color: #fff;
+        -webkit-background-clip: padding-box;
+        background-clip: padding-box;
+        border: 1px solid rgba(0,0,0,.15);
+        border-radius: 4px;
+        -webkit-box-shadow: 0 6px 12px rgba(0,0,0,.175);
+        box-shadow: 0 6px 12px rgba(0,0,0,.175);
+      }
+      .dropdown-menu>.active>a, .dropdown-menu>.active>a:focus, .dropdown-menu>.active>a:hover {
+        color: #fff;
+        text-decoration: none;
+        background-color: #337ab7;
+        outline: 0;
+      }
+      .dropdown-menu>li>a {
+        display: block;
+        padding: 3px 20px;
+        clear: both;
+        font-weight: 400;
+        line-height: 1.42857143;
+        color: #333;
+        white-space: nowrap;
+        border-radius: 0;
+      }
+      .dropdown-menu > li:first-child {
+        padding-top: 0;
+      }
+      .dropdown-menu > li:last-child {
+        padding-bottom: 0;
+      }
+      .dropdown-menu>li>a:focus, .dropdown-menu>li>a:hover {
+        color: #262626;
+        text-decoration: none;
+        background-color: #f5f5f5;
+      }
       .scrollable-menu {
         display: block;
         height: auto;
@@ -45,7 +92,7 @@ import { getCaretCoordinates } from './caret-coords';
     <ng-template #defaultItemTemplate let-item="item">
       {{item[labelKey]}}
     </ng-template>
-    <ul #list [hidden]="_hidden" class="dropdown-menu scrollable-menu">
+    <ul #list [hidden]="hidden" class="dropdown-menu scrollable-menu">
       <li *ngFor="let item of items; let i = index" [class.active]="activeIndex==i">
         <a class="dropdown-item" (mousedown)="activeIndex=i;itemClick.emit();$event.preventDefault()">
           <ng-template [ngTemplateOutlet]="itemTemplate" [ngTemplateOutletContext]="{'item':item}"></ng-template>

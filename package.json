@@ -1,6 +1,6 @@
 {
   "name": "ngx-ui-mention",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Angular mentions for text fields.",
   "bugs": "https://github.com/KeitaElric/angular-mentions",
   "keywords": [

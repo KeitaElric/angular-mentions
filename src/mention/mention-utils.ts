@@ -19,16 +19,32 @@ export function insertValue(
   start: number,
   end: number,
   text: string,
+  format: string,
   iframe: HTMLIFrameElement,
   noRecursion: boolean = false
 ) {
   //console.log("insertValue", el.nodeName, start, end, "["+text+"]", el);
-  const txt = `[${text.substring(1, text.length)}]`;
+  const txt = `${text.substring(1, text.length)}`;
+  const formatArr = format.split('');
 
   if (isTextElement(el)) {
-    let val = getValue(el);
-    setValue(el, val.substring(0, start) + txt + val.substring(end, val.length));
-    setCaretPosition(el, start + txt.length, iframe);
+    const val = getValue(el);
+
+    // left value
+    let customValue = val.substring(0, start);
+    // input value
+    formatArr.forEach((char) => {
+      if (char === '@') {
+        customValue += txt;
+      } else {
+        customValue += char;
+      }
+    });
+    // right value
+    customValue += val.substring(end, val.length);
+
+    setValue(el, customValue);
+    setCaretPosition(el, start + txt.length + 2, iframe);
   } else if (!noRecursion) {
     let selObj: Selection = getWindowSelection(iframe);
     if (selObj && selObj.rangeCount > 0) {
@@ -38,7 +54,7 @@ export function insertValue(
       // if (text.endsWith(' ')) {
       //   text = text.substring(0, text.length-1) + '\xA0';
       // }
-      insertValue(<HTMLInputElement>anchorNode, position - (end - start), position, txt, iframe, true);
+      insertValue(<HTMLInputElement>anchorNode, position - (end - start), position, txt, format, iframe, true);
     }
   }
 }

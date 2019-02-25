@@ -66,6 +66,7 @@ export class MentionDirective implements OnChanges {
     triggerChar: '@',
     labelKey: 'label',
     maxItems: -1,
+    format: '[@]',
     mentionSelect: (item: any) => this.activeConfig.triggerChar + item[this.activeConfig.labelKey]
   };
 
@@ -231,7 +232,7 @@ export class MentionDirective implements OnChanges {
             // value is inserted without a trailing space for consistency
             // between element types (div and iframe do not preserve the space)
             insertValue(nativeElement, this.startPos, pos,
-              this.activeConfig.mentionSelect(this.searchList.activeItem), this.iframe);
+              this.activeConfig.mentionSelect(this.searchList.activeItem), this.activeConfig.format, this.iframe);
             // fire input event so angular bindings are updated
             if ('createEvent' in document) {
               var evt = document.createEvent('HTMLEvents');

@@ -29,7 +29,7 @@ Add the CSS to your index.html:
 Add the module to your app.module imports:
 
 ```typescript
-import { MentionModule } from 'angular-mentions/mention';
+import { MentionModule } from 'ngx-ui-mention';
 ...
 
 @NgModule({
@@ -62,13 +62,14 @@ The following optional configuration items can be used.
 | disableSort   | false    | Disable sorting of suggested items. |
 | disableSearch | false    | Disable internal filtering (only useful if async search is used). |
 | dropUp        | false    | Show the menu above the cursor instead of below. |
+| format        | [@]      | Custom output format value with @ is mention value |
 | maxItems      | ∞        | Limit the number of items shown in the text. The default is no limit. |
 | mentionSelect |          | An optional function to format the selected item before inserting the text. |
 
 For Example: 
 
 ```html
-<input type="text" [mention]="items" [mentionConfig]="{triggerChar:'#',maxItems:10,labelKey:'name'}">
+<input type="text" [mention]="items" [mentionConfig]="{triggerChar:'#',maxItems:10,labelKey:'name',format:'[@]'}">
 ```
 
 #### Output Events
